@@ -1,0 +1,49 @@
+#!/bin/bash
+IMAGETYPE="${1:-qemu}"
+RUNID="${2}"
+
+function get_md5_remote
+{
+    local REMOTE_FILE="$1"
+    grep "$REMOTE_FILE" MD5SUMS|awk '{print $1}'
+}
+
+function get_md5_local
+{
+    local LOCAL_FILE="$1"
+    md5sum "$LOCAL_FILE"|awk '{print $1}'
+}
+
+function check_md5
+{
+    local REMOTE_FILE="$1"
+    local LOCAL_FILE="$2"
+    [ -f $LOCAL_FILE ]&&[ "$(get_md5_remote $REMOTE_FILE)" = "$(get_md5_local $LOCAL_FILE)" ]
+}
+
+[ -d image-"${IMAGETYPE}" ] || mkdir image-"${IMAGETYPE}"
+cd image-"${IMAGETYPE}"
+rm MD5SUMS
+GHCMD="gh run download"
+[ -n "$RUNID" ]&&GHCMD="${GHCMD} ${RUNID}"
+eval "${GHCMD} -n debian-stable-${IMAGETYPE}-md5"
+for F in `cat MD5SUMS|awk '{ print $2; }'`; do
+    if ! check_md5 $F $F; then
+	for RMF in `cat MD5SUMS|awk '{ print $2; }'`; do
+	    echo "$F: md5 changed: removing $RMF"
+	    rm -rf "$RMF"
+	done
+	rm -f MD5SUMS
+	echo "$F: md5 changed: downloading"
+	eval "${GHCMD} -n debian-stable-${IMAGETYPE}"
+	exit 1
+    fi
+done
+exit 0
+
+# if ! check_md5 "./${NETBOOT_KERNEL}/linux" "linux" ; then
+#     echo "$0: linux: fetching"
+#     curl -O "$NETBOOT_URL/linux"
+# else
+#     echo "$0: linux: updated"
+# fi
