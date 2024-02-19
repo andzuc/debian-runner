@@ -22,11 +22,13 @@ function check_md5
     [ -f $LOCAL_FILE ]&&[ "$(get_md5_remote $REMOTE_FILE)" = "$(get_md5_local $LOCAL_FILE)" ]
 }
 
-[ -d image-"${IMAGENAME}" ] || mkdir image-"${IMAGENAME}"
-cd image-"${IMAGENAME}"
+[ -d "${IMAGENAME}" ] || mkdir "${IMAGENAME}"
+cd "${IMAGENAME}"
 rm MD5SUMS
 GHCMD="gh run download"
-[ -n "$RUNID" ]&&GHCMD="${GHCMD} ${RUNID}"
+[ -n "${RUNID}" ]&&GHCMD="${GHCMD} ${RUNID}"
+[ -n "${REPO}" ]&&GHCMD="${GHCMD} -R ${REPO}"
+echo "eval: ${GHCMD} -n ${IMAGENAME}-md5"
 eval "${GHCMD} -n ${IMAGENAME}-md5"
 for F in `cat MD5SUMS|awk '{ print $2; }'`; do
     if ! check_md5 $F $F; then
