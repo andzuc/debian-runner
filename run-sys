@@ -1,0 +1,46 @@
+#!/bin/bash
+
+QEMU_ARCH="$(uname -m)"
+QEMU_MACH="virt,virtualization=true,kernel_irqchip=on,gic-version=3"
+QEMU_CPU="cortex-a53"
+
+B="debian-stable-qemu-$QEMU_ARCH"
+SYS_COUNT=1
+
+SYSHD_DEVICES="-device scsi-hd,drive=sysboot,bus=scsi0.0,channel=0,scsi-id=1,lun=0 "
+SYSHD_DRIVES="-drive file=\"$B/sys_boot.img\",format=qcow2,if=none,id=sysboot "
+for i in $(seq 1 "${SYS_COUNT}"); do
+    SYSHD_DEVICES="${SYSHD_DEVICES}-device scsi-hd,drive=syshd$i,bus=scsi1.0,channel=0,scsi-id=$i,lun=0 "
+    SYSHD_DRIVES="${SYSHD_DRIVES}-drive file=\"$B/sys_$i.img\",format=qcow2,if=none,id=syshd$i "
+done
+
+case "${M}" in
+    aarch64)
+	CONSOLE=ttyAMA0
+	;;
+    *)
+	CONSOLE=ttyS0
+	;;
+esac
+
+(
+cat <<EOF
+qemu-system-${QEMU_ARCH} \
+-d unimp,guest_errors \
+-D qemu.log \
+-serial mon:stdio \
+-machine "${QEMU_MACH}" \
+-cpu "${QEMU_CPU}" \
+-m 1024M \
+-nographic \
+-netdev user,id=net0 \
+-device driver=virtio-net-pci,netdev=net0 \
+-object rng-random,filename=/dev/urandom,id=rng0 \
+-device virtio-rng-pci,rng=rng0 \
+-rtc base=utc,clock=host \
+-device virtio-scsi-pci,id=scsi0 \
+-device virtio-scsi-pci,id=scsi1 \
+${SYSHD_DEVICES} \
+${SYSHD_DRIVES}
+EOF
+)|sh
