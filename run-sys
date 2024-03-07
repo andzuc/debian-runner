@@ -14,7 +14,7 @@ for i in $(seq 1 "${SYS_COUNT}"); do
     SYSHD_DRIVES="${SYSHD_DRIVES}-drive file=\"$B/sys_$i.img\",format=qcow2,if=none,id=syshd$i "
 done
 
-case "${M}" in
+case "${QEMU_ARCH}" in
     aarch64)
 	CONSOLE=ttyAMA0
 	;;
@@ -22,9 +22,12 @@ case "${M}" in
 	CONSOLE=ttyS0
 	;;
 esac
+echo CONSOLE=$CONSOLE
 
-(
-cat <<EOF
+KERNEL="$(ls -1 $B/data/boot/vmlinuz-*)"
+INITRD="$(ls -1 $B/data/boot/initrd.img-*)"
+
+read -r -d '' QEMU <<EOF
 qemu-system-${QEMU_ARCH} \
 -d unimp,guest_errors \
 -D qemu.log \
@@ -32,6 +35,9 @@ qemu-system-${QEMU_ARCH} \
 -machine "${QEMU_MACH}" \
 -cpu "${QEMU_CPU}" \
 -m 1024M \
+-kernel "$KERNEL" \
+-initrd "$INITRD" \
+-append "root=/dev/sda1 console=${CONSOLE} consoleblank=0 elevator=noop scsi_mod.use_blk_mq=Y net.ifnames=0 biosdevname=0 - DEBIAN_FRONTEND=text" \
 -nographic \
 -netdev user,id=net0 \
 -device driver=virtio-net-pci,netdev=net0 \
@@ -43,4 +49,5 @@ qemu-system-${QEMU_ARCH} \
 ${SYSHD_DEVICES} \
 ${SYSHD_DRIVES}
 EOF
-)|sh
+
+eval "$QEMU"
