@@ -37,7 +37,7 @@ qemu-system-${QEMU_ARCH} \
 -m 1024M \
 -kernel "$KERNEL" \
 -initrd "$INITRD" \
--append "root=/dev/sda1 console=${CONSOLE} consoleblank=0 elevator=noop scsi_mod.use_blk_mq=Y net.ifnames=0 biosdevname=0 - DEBIAN_FRONTEND=text" \
+-append "root=/dev/mapper/rootvg-root console=${CONSOLE} consoleblank=0 elevator=noop scsi_mod.use_blk_mq=Y net.ifnames=0 biosdevname=0 - DEBIAN_FRONTEND=text" \
 -nographic \
 -netdev user,id=net0 \
 -device driver=virtio-net-pci,netdev=net0 \
