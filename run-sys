@@ -1,4 +1,5 @@
 #!/bin/bash
+VMTAG="$1"
 
 QEMU_ARCH="$(uname -m)"
 QEMU_MACH="virt,virtualization=true,kernel_irqchip=on,gic-version=3"
@@ -49,5 +50,9 @@ qemu-system-${QEMU_ARCH} \
 ${SYSHD_DEVICES} \
 ${SYSHD_DRIVES}
 EOF
+
+if [ -n "$VMTAG" ]; then
+    QEMU="$QEMU -loadvm $VMTAG"
+fi
 
 eval "$QEMU"
