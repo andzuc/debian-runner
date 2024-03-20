@@ -1,0 +1,6 @@
+#!/bin/bash
+MACHINE="debian-runner"
+SOCKET="$(readlink -e qemu-mon_${MACHINE}.sock)"
+
+echo "Connecting to ${MACHINE}"
+socat "${SOCKET}" STDIN

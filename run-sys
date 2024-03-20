@@ -1,5 +1,7 @@
 #!/bin/bash
 VMTAG="$1"
+MACHINE="debian-runner"
+SOCKET="qemu-mon_${MACHINE}.sock"
 
 QEMU_ARCH="$(uname -m)"
 QEMU_MACH="virt,virtualization=true,kernel_irqchip=on,gic-version=3"
@@ -33,6 +35,7 @@ qemu-system-${QEMU_ARCH} \
 -d unimp,guest_errors \
 -D qemu.log \
 -serial mon:stdio \
+-monitor "unix:${SOCKET},server,nowait" \
 -machine "${QEMU_MACH}" \
 -cpu "${QEMU_CPU}" \
 -m 1024M \
