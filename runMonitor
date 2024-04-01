@@ -1,0 +1,3 @@
+
+#!/bin/bash
+timeout -s USR1 --foreground --preserve-status 20s ./runLast

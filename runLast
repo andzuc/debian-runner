@@ -1,0 +1,20 @@
+#!/bin/bash
+LAST_SNAP="$(qemu-img snapshot -l debian-stable-qemu-aarch64/sys_boot.img|tail -n1|awk '{print $2}')"
+
+echo LAST_SNAP: "$LAST_SNAP"
+
+function onSIGUSR1
+{
+    echo "onSIGUSR1"
+    echo "savevm Z"|./mon-cmd
+    sleep 10
+    echo "quit"|./mon-cmd
+    exit 0
+}
+
+trap onSIGUSR1 USR1
+
+echo ./run-sys "$LAST_SNAP"
+./run-sys "$LAST_SNAP" &
+wait $!
+echo afterSleep
