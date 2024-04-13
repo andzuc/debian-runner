@@ -5,16 +5,17 @@ echo LAST_SNAP: "$LAST_SNAP"
 
 function onSIGUSR1
 {
-    echo "onSIGUSR1"
+    echo "$0: timeout: savevm"
     echo "savevm Z"|./mon-cmd
     sleep 10
+    echo "$0: timeout: quit"
     echo "quit"|./mon-cmd
     exit 0
 }
 
 trap onSIGUSR1 USR1
 
-echo ./run-sys "$LAST_SNAP"
+echo ./run-sys "Last snapshot: $LAST_SNAP"
 ./run-sys "$LAST_SNAP" &
 wait $!
-echo afterSleep
+echo "$0: end"
