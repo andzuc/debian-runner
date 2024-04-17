@@ -1,6 +1,6 @@
 #!/bin/bash
 
-QEMU_ARCH="$(uname -m)"
+QEMU_ARCH=aarch64
 QEMU_MACH="virt,virtualization=true,kernel_irqchip=on,gic-version=3"
 QEMU_CPU="cortex-a53"
 
@@ -31,6 +31,8 @@ qemu-system-${QEMU_ARCH} \
 -serial mon:stdio \
 -machine "${QEMU_MACH}" \
 -cpu "${QEMU_CPU}" \
+-drive if=pflash,format=raw,file=efi.img,readonly=on \
+-drive if=pflash,format=raw,file=varstore.img \
 -m 1024M \
 -nographic \
 -netdev user,id=net0 \
